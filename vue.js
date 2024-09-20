@@ -1,5 +1,5 @@
-import * as i from "/instrumento.js";
-import * as parser from "/parser.mjs";
+import * as i from "./instrumento.js";
+import * as parser from "./parser.mjs";
 
 
 const app = Vue.createApp({
