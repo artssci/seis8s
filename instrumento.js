@@ -1,4 +1,4 @@
-import * as a from "/armonia.js";
+import * as a from "./armonia.js";
 
 ///////////// list of samples /////////////////////
 const listaDeSonidosDelBajo = [{nombre: "bajoSintetico/"}, {nombre: "bajoAcustico/"}, {nombre: "bajoAspero/"}, {nombre: "bajoConDedos/"}, {nombre: "bajoFretless/"}, {nombre: "bajoPlumeado/"}, {nombre: "bajoSlap/"}]
