@@ -180,7 +180,7 @@
   </foreignObject>
   
   <foreignObject x="175" y="490" width="20" height="20" rx="5.5">
-    <select v-model="selectedVoice">
+    <select v-model="selectedVoice" class="custom-select">
       <option v-for="voice in spanishVoices" :key="voice.name" :value="voice">
         {{ voice.name }}
       </option>

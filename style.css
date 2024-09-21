@@ -87,14 +87,22 @@ input[type="checkbox"] {
   height: 100%; /* Set the height to 30px */
 }
 
-select {
+
+
+.custom-select {
+  color: white;
   width: 100%;  /* Set the width of the dropdown */
   height: 100%;  /* Set the height of the dropdown */
   border: 1px solid white;  /* Set the border color and width */
-  font-size: 0.5em;  /* Set the font size */
+  font-size: 100%;  /* Set the font size */
   background-color: transparent;  /* Set the background color */
   font-family: 'Hanalei Fill';
 }
+
+.custom-select option {
+  color: black; 
+}
+
 
 /* BANNER */
 @keyframes marquee {
@@ -197,3 +205,6 @@ select {
    color: white;
    cursor:pointer;
 }
+
+
+
