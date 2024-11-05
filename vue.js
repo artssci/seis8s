@@ -1,5 +1,7 @@
 import * as i from "./instrumento.js";
+import * as p from "./programa.js";
 import * as parser from "./parser.mjs";
+
 
 
 const app = Vue.createApp({
@@ -7,12 +9,14 @@ const app = Vue.createApp({
 
   data() {
     return {
-         output: '',
+     output: '',
+      
 //       banner and text-to-speech
       publish: false,
       textoDelBanner: 'Cumbia!!! Cumbia!!! Cumbia!!!',
       spanishVoices: [],
       selectedVoice: null,
+      
 //       imagen de fondo
       imagenDeFondo: 'image',
       hrefImagenDeFondo: 'https://cdn.glitch.global/1c9491c3-d804-48fe-9d1e-06e2c4f58528/bolsa-de-papas%202.svg?v=1720034945651',
@@ -33,8 +37,11 @@ const app = Vue.createApp({
       saludos: "Saludos!!!",
       saludosTranslated: "Greetings!!!",
       errorConsole: "Seis8s v.2",
-//       
-      // codeExample1: `bajo; \nteclado;`,
+
+      // editor      
+      pantallaCompleta: false,
+      ocultarPanelIzquierdo: false,
+      showPlusSign: true,
       codeEditorImagenDeFondoXpos: 345.28,
       codeEditorXpos: 343.5,
       consoleXpos: 343.606,
@@ -52,21 +59,19 @@ const app = Vue.createApp({
       initXPlusSsign: 575.524,
       espacioPlusSignYtab: 0.736,
       anchoDelDocTab: 168.017,
-      docs: [],
-      // docs:[{name: "Documento 1", documentoActivo: true, textareaId: "textarea1", xDocTab: 406.506, xCerrarDocIcono: 549.422, textEditor: `bajo tumbao cumbia; \nteclado acompañamiento cumbia;`}],
+      docs:[{name: "Documento 0", documentoActivo: true, textareaId: "textarea 0", xDocTab: 406.506, xCerrarDocIcono: 549.422, textEditor: ` tempo 150; \n armonia |Cmaj||Dm|; \n teclado (v 0.75, acompañamiento | 𝄽  𝅘𝅥  𝄽  𝅘𝅥 || 𝄽  𝅘𝅥  𝄽  𝅘𝅥 |);\n bajo (v 1, s 3, tumbao | 𝅘𝅥  𝄽  𝅘𝅥 /3 𝅘𝅥 /5 || 𝅘𝅥  𝄽  𝅘𝅥 /3 𝅘𝅥 /5 |); \n bombo ( v 0.90, ritmo | 𝅘𝅥  𝄽 𝅘𝅥 𝅘𝅥 |); \n contras ( v 0.9, ritmo |𝅘𝅥 𝅘𝅥𝅮 𝅘𝅥𝅮 𝅘𝅥 𝅘𝅥𝅮 𝅘𝅥𝅮|);`,
+}],
     };
   },
 
   mounted() {
-    // let ejemploDeInicio = `bajo tumbao cumbia;\n teclado tumbao cumbia;\n marcha congas cumbia;`
-    // let ejemploDeInicio = `tempo 150;\n armonia |Cmaj||Dm|;\n bajo (tumbao | 𝅘𝅥  𝄽  𝅘𝅥 /3 𝅘𝅥 /5|| 𝅘𝅥  𝄽  𝅘𝅥 /3 𝅘𝅥 /5|);`
-    // let ejemploDeInicio = `tempo 150;\n armonia |Cmaj||Dm|;\n teclado (tumbao | 𝅘𝅥  𝄽  𝅘𝅥 /3 𝅘𝅥 /5|| 𝅘𝅥  𝄽  𝅘𝅥 /3 𝅘𝅥 /5|);`
-    let ejemploDeInicio = ` tempo 150; \n armonia |Cmaj||Dm|; \n teclado (v 0.75, tumbao | 𝄽  𝅘𝅥  𝄽  𝅘𝅥 || 𝄽  𝅘𝅥  𝄽  𝅘𝅥 |);\n bajo (v 1, s 3, tumbao | 𝅘𝅥  𝄽  𝅘𝅥 /3 𝅘𝅥 /5 || 𝅘𝅥  𝄽  𝅘𝅥 /3 𝅘𝅥 /5 |);`
-    // ejemploDeInicio = ejemploDeInicio.split(';').map(s => s.trim()).join('\n');
-    this.agregaUnDocADocs();
-    this.$nextTick(() => {
-    this.docs[0].textEditor = ejemploDeInicio;
-    });
+     // let ejemploDeInicio = ` tempo 150; \n armonia |Cmaj||Dm|; \n teclado (v 0.75, acompañamiento | 𝄽  𝅘𝅥  𝄽  𝅘𝅥 || 𝄽  𝅘𝅥  𝄽  𝅘𝅥 |);\n bajo (v 1, s 3, tumbao | 𝅘𝅥  𝄽  𝅘𝅥 /3 𝅘𝅥 /5 || 𝅘𝅥  𝄽  𝅘𝅥 /3 𝅘𝅥 /5 |); \n bombo ( v 0.90, ritmo | 𝅘𝅥  𝄽 𝅘𝅥 𝅘𝅥 |); \n contras ( v 0.9, ritmo |𝅘𝅥 𝅘𝅥𝅮 𝅘𝅥𝅮 𝅘𝅥 𝅘𝅥𝅮 𝅘𝅥𝅮|);`
+    // this.agregaUnDocADocs();
+    // this.$nextTick(() => {
+    // this.docs[this.indiceDelDocumentoActivo].textEditor = ejemploDeInicio;
+    // this.textEditor = ejemploDeInicio;
+    // });
+    
 //     populate text-to-speech drodpdown
   const speechSynthesis = window.speechSynthesis;
     speechSynthesis.onvoiceschanged = () => {
@@ -83,6 +88,53 @@ const app = Vue.createApp({
   },
 
   methods: {
+  
+    agregaUnDocADocs() {
+  // Determine the index of the last document, or start from 0 if docs is empty
+  let newIndex;
+  if (this.docs.length === 0) {
+    this.initXPlusSsign = 575.524;
+    this.initXdocTab = 406.506;
+    this.initXCerrarDocIcono = 549.422;
+    newIndex = 0; // Start from 0 if no documents exist
+  } else {
+    // Extract numbers from document names to find the highest existing index
+    const existingIndexes = this.docs.map(doc => parseInt(doc.name.match(/\d+$/)[0]));
+    const maxIndex = Math.max(...existingIndexes);
+    newIndex = maxIndex + 1;
+    
+    // Set positions based on the last document's positions
+    let lastElementOfList = this.docs[this.docs.length - 1];
+    this.initXdocTab = lastElementOfList.xDocTab + this.anchoDelDocTab;
+    this.initXCerrarDocIcono = lastElementOfList.xCerrarDocIcono + this.anchoDelDocTab;
+  }
+
+  // Add the new document with calculated index and positions
+  let newDoc = {
+    name: `Documento ${newIndex}`,
+    documentoActivo: true,
+    textareaId: `textarea ${newIndex}`,
+    xDocTab: this.initXdocTab,
+    xCerrarDocIcono: this.initXCerrarDocIcono,
+    textEditor: "",
+  };
+  this.docs.push(newDoc);
+
+  // Activate and focus on the new document
+  let id = this.docs.length - 1;
+  this.activarDocumento(id);
+  this.textEditorFocus(id);
+
+  // Update position for the '+' sign if there are less than 5 documents
+    if (this.docs.length < 5) {
+     this.initXPlusSsign = this.docs[id].xDocTab + this.anchoDelDocTab + this.espacioPlusSignYtab;
+    this.showPlusSign = true;
+  } else {
+    this.showPlusSign = false;
+  }
+},
+
+  
     startEditing() {
       this.isEditing = true;
     },
@@ -90,15 +142,25 @@ const app = Vue.createApp({
       this.isEditing = false;
     },
 
+    
     textEditorFocus(index) {
-      let key = "editorTextArea" + index;
-      this.$nextTick(() => {
-        this.$refs[key][0].focus();
-        this.indiceDelDocumentoActivo = index;
-        this.transparentCaret = true;
-        this.yellowCaret = false;
-      });
-    },
+  const textAreaId = this.docs[index].textareaId; // Retrieve the textareaId from the docs array
+
+  this.$nextTick(() => {
+    const textArea = document.getElementById(textAreaId); // Access the textarea using the ID
+
+    if (textArea) {
+      textArea.focus(); // Set focus on the textarea
+      this.indiceDelDocumentoActivo = index;
+      this.transparentCaret = true;
+      this.yellowCaret = false;
+    } else {
+      console.error("Textarea with ID", textAreaId, "not found.");
+    }
+  });
+},
+    
+
 
     tabFocus(key) {
       this.$refs[key][0].focus();
@@ -139,62 +201,19 @@ const app = Vue.createApp({
       }
     },
 
-    activarDocumento(index) {
-      this.indiceDelDocumento = index;
-      for (var i = 0; i < this.docs.length; i++) {
-        this.docs[i].documentoActivo = false;
-      }
-      this.docs[index].documentoActivo = true;
-      this.textEditorFocus(index);
-      this.transparentCaret = true;
-      this.yellowCaret = false;
-    },
+    
+activarDocumento(index) {
+  this.indiceDelDocumento = index;
+  this.docs.forEach((doc, i) => {
+    doc.documentoActivo = i === index;
+  });
+  // console.log("Updated documentoActivo:", this.docs.map(doc => doc.documentoActivo));
+  this.textEditorFocus(index);
+  this.transparentCaret = true;
+  this.yellowCaret = false;
+},
 
-    //     AGREGAR UN NUEVO DOC
-
-    agregaUnDocADocs() {
-      if (this.docs.length == 0) {
-        this.initXPlusSsign = 575.524;
-        this.initXdocTab = 406.506;
-        this.initXCerrarDocIcono = 549.422;
-        let newDoc = {
-          name: "Documento ",
-          documentoActivo: false,
-          textareaId: "textarea",
-          xDocTab: this.initXdocTab,
-          xCerrarDocIcono: this.initXCerrarDocIcono,
-          textEditor: "",
-        };
-        this.docs.push(newDoc);
-        let id = this.docs.length - 1;
-        this.activarDocumento(id);
-        this.textEditorFocus(id);
-      } else if (this.docs.length > 0 && this.docs.length < 5) {
-        let lastElementOfList = this.docs.length - 1;
-        this.initXdocTab =
-          this.docs[lastElementOfList].xDocTab + this.anchoDelDocTab;
-        this.initXCerrarDocIcono =
-          this.docs[lastElementOfList].xCerrarDocIcono + this.anchoDelDocTab;
-        let newDoc = {
-          name: "Documento ",
-          documentoActivo: false,
-          textareaId: "textarea",
-          xDocTab: this.initXdocTab,
-          xCerrarDocIcono: this.initXCerrarDocIcono,
-          textEditor: "",
-        };
-        this.docs.push(newDoc);
-        let id = this.docs.length - 1;
-        this.activarDocumento(id);
-        this.textEditorFocus(id);
-        let updatedLastElementOfList = id;
-        this.initXPlusSsign =
-          this.docs[updatedLastElementOfList].xDocTab +
-          this.anchoDelDocTab +
-          this.espacioPlusSignYtab;
-      } else alert("El límite de documentos es 5");
-    },
-
+    
     // CERRAR UN DOCUMENTO
 
     cerrarDocumento(index) {
@@ -207,6 +226,7 @@ const app = Vue.createApp({
           let replaceXdocTab1 = this.docs[index].xDocTab;
           this.initXPlusSsign = replaceXdocTab1;
           this.docs.splice(index, 1);
+          
           this.activarDocumento(index - 1);
           let textAreaRef = index - 1;
           this.textEditorFocus(textAreaRef);
@@ -304,6 +324,7 @@ const app = Vue.createApp({
         if (index == 4) {
           let replaceXdocTab1 = this.docs[index].xDocTab;
           this.initXPlusSsign = replaceXdocTab1;
+          this.showPlusSign = true;
           this.docs.splice(index, 1);
           this.activarDocumento(index - 1);
           let textAreaRef = index - 1;
@@ -314,6 +335,7 @@ const app = Vue.createApp({
           this.docs[index + 1].xDocTab = replaceXdocTab1;
           this.docs[index + 1].xCerrarDocIcono = replaceXcerrarDocIcono1;
           this.initXPlusSsign = replaceXdocTab1 + this.anchoDelDocTab;
+          this.showPlusSign = true;          
           this.docs.splice(index, 1);
           this.activarDocumento(index);
           this.textEditorFocus(index);
@@ -344,6 +366,7 @@ const app = Vue.createApp({
           this.docs[index + 3].xDocTab = replaceXdocTab3;
           this.docs[index + 3].xCerrarDocIcono = replaceXcerrarDocIcono3;
           this.initXPlusSsign = replaceXdocTab3 + this.anchoDelDocTab;
+          this.showPlusSign = true;
           this.docs.splice(index, 1);
           this.activarDocumento(index);
           this.textEditorFocus(index);
@@ -365,6 +388,7 @@ const app = Vue.createApp({
           this.docs[index + 4].xDocTab = replaceXdocTab4;
           this.docs[index + 4].xCerrarDocIcono = replaceXcerrarDocIcono4;
           this.initXPlusSsign = replaceXdocTab4 + this.anchoDelDocTab;
+          this.showPlusSign = true;
           this.docs.splice(index, 1);
           this.activarDocumento(index);
           this.textEditorFocus(index);
@@ -516,33 +540,48 @@ mandarSaludos() {
       this.mostrarTutorialesContenedor = false;
       this.mostrarConexionesMidiContenedor = true;
     }, 
-    
-  convertInput() {
-  const refName = 'editorTextArea' + this.indiceDelDocumentoActivo;  // Build the dynamic ref name
-  const textArea = this.$refs[refName];   // Access the textarea element via the dynamic ref
 
-  if (textArea) {
-    const cursorPosition = textArea.selectionStart; // Save the cursor position
-    const originalText = this.docs[this.indiceDelDocumentoActivo].textEditor; // Save original text
+convertInput() {
+  const activeDoc = this.docs[this.indiceDelDocumentoActivo]; // Access active document
+  if (!activeDoc) {
+    console.error("Active document not found.");
+    return;
+  }
 
-    // Modify the text
-    this.docs[this.indiceDelDocumentoActivo].textEditor = this.processInput(originalText);
+  const textAreaId = activeDoc.textareaId; // Get textarea ID from active document
+  // console.log("Active TextArea ID:", textAreaId);
 
-    // Calculate the length difference after modification
-    const newText = this.docs[this.indiceDelDocumentoActivo].textEditor;
-    const lengthDifference = newText.length - originalText.length;
+  const textArea = document.getElementById(textAreaId); // Select the textarea by ID
+  // console.log("Found TextArea:", textArea);
+
+  if (textArea && typeof textArea.selectionStart === 'number') {
+    const cursorPosition = textArea.selectionStart; // Save cursor position
+    // console.log("Cursor position:", cursorPosition);
+
+    const originalText = activeDoc.textEditor; // Original text from active document
+    const modifiedText = this.processInput(originalText); // Modified text after processing
+
+    // Update the editor's text content
+    activeDoc.textEditor = modifiedText;
+
+    // Calculate the difference in length between original and modified text
+    const lengthDifference = modifiedText.length - originalText.length;
+    // console.log("Length difference:", lengthDifference);
 
     // Restore the cursor position, adjusted by the length difference
     this.$nextTick(() => {
-      textArea.selectionStart = cursorPosition + lengthDifference;
-      textArea.selectionEnd = cursorPosition + lengthDifference;
+      const newCursorPosition = Math.max(0, cursorPosition + lengthDifference); // Prevent negative cursor positions
+      const finalCursorPosition = Math.min(newCursorPosition, modifiedText.length); // Prevent exceeding text length
+
+      // Set selection range to the updated cursor position
+      textArea.setSelectionRange(finalCursorPosition, finalCursorPosition);
+      textArea.focus(); // Ensure the textarea is focused
     });
   } else {
-    console.error("Textarea ref not found:", refName);
+    console.error("Textarea element not found or cursor position not accessible:", textAreaId);
   }
 },
-
-    
+   
      processInput(input) {
   // Split by spaces but keep pipes attached to the next command
   let commands = input.split(' ').map(cmd => {
@@ -560,8 +599,8 @@ mandarSaludos() {
 replaceCommand(command) {
   // Replace commands based on the map
   switch (command) {
-    case ':bajo:':
-      return '🎸';
+    // case ':bajo:':
+    //   return '🎸';
     case 'n1':
       return '𝅝';
     case 'n2':
@@ -589,15 +628,15 @@ replaceCommand(command) {
       return command;  // If no match, return the original command
   }
 },
-
     
     evaluate(){
        try {
        var datosDelPrograma = parser.parse(this.docs[this.indiceDelDocumentoActivo].textEditor);
-       i.programa(datosDelPrograma.estadoGlobal, datosDelPrograma.pistas);
+       // var datosDelPrograma = parser.parse(this.textEditor);
+       p.programa(datosDelPrograma.estadoGlobal, datosDelPrograma.pistas);
        console.log(datosDelPrograma.pistas);
-       // this.errorConsole = datosDelPrograma;
-       this.errorConsole = "";
+       this.errorConsole = datosDelPrograma;
+       // this.errorConsole = "";
 
      } catch (error) {
        this.errorConsole = "Error:" + error.message;
@@ -605,7 +644,20 @@ replaceCommand(command) {
       
     },
     
-  
+  expandirPantalla(){
+    this.pantallaCompleta = !this.pantallaCompleta;
+    if (this.pantallaCompleta == false){
+    this.ocultarPanelIzquierdo = false
+    } else {
+      console.log("completa")
+      this.ocultarPanelIzquierdo = true;
+      // this.codeEditorImagenDeFondoXpos: 345.28,
+      // this.codeEditorXpos: 343.5,
+      this.consoleXpos = -0.432373 
+      // x="-0.432373" y="199.5" 
+        // width="342.932" height="469"
+    }
+  },
 //     
   }
 });

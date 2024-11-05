@@ -1,12 +1,15 @@
  {
 
 function createProperty(key, value) {
-  return { [key]: value }; 
+  return { [key]: value }; // Return as before for non-object values
 }
+
+function createNestedProperty(parentKey, childProps){ 
+  const nestedObj = {}; nestedObj[parentKey] = childProps; return nestedObj; }
 
 const datosDelPrograma = {
   estadoGlobal: {
-    armonia: ['Cmaj'],
+    armonia: [['Cmaj']],
     tempo: 120, 
     compas: 4, 
     volumen: 1, 
@@ -25,14 +28,17 @@ const defaultElementoDeParte = {
   
 const defaultMusicalObject = {
   name: '',
+  id: 'default', // Add id field
   volumen: 1, // Default volume
   paneo: 0.5, // Default panning
   sonido: 0,
   octavaAbsoluta: 5,
   notas: ['C4'], // Default note
-  parte: []
+  parte: {
+    type: null,
+    parteList:[]
+    }
 }
-
 
 
 function normalizarVolumenDeInstrumento(v){
@@ -49,6 +55,12 @@ function completeMusicalObject(inputObject) {
   }
   if (!inputObject.hasOwnProperty('paneo')) {
     completedObject.paneo = datosDelPrograma.estadoGlobal.paneo;
+  }
+  
+    // Ensure `parte` exists with a default empty `type`
+  if (!inputObject.hasOwnProperty('parte')) {
+    completedObject.parte.type = null,
+    completedObject.parte.parteList = [];
   }
   
    // Execute the octava method
@@ -163,7 +175,7 @@ function asignarNumeroDeCompas(listaDeCompases){
 
 start = _ (pista / estadoGlobal)* {return datosDelPrograma }
 estadoGlobal
-  = _ k:("armonia" / "acordes") _ v:listaDeAcordesGlobales _ ";" {
+  = _ k:("armonia" / "acordes") _ v:listaDeAcordesGlobales _ ";" _ {
           if (v.length == 0) {
            return error(k + ' requiere uno o más compases con acordes')
           } else return datosDelPrograma.estadoGlobal.armonia = v
@@ -187,21 +199,59 @@ estadoGlobal
 
 pista 
   = _ i:instrumentIdentifier  _ p:listaDePropiedades? _ ";" _ {
-  if(p == null) {
-  let pista = Object.assign({}, i);
-  return datosDelPrograma.pistas = [...datosDelPrograma.pistas, completeMusicalObject(pista)];
-} else {
-  let pista = Object.assign({}, i, ... p);
-  return datosDelPrograma.pistas = [...datosDelPrograma.pistas, completeMusicalObject(pista)];
+    // Prepare the musical object by merging properties (if any)
+    let pista = Object.assign({}, i);
+    if (p) {
+        Object.assign(pista, ...p);
+    } 
+    
+
+     // Check for both notas and parte properties
+    if (pista.notas && pista.parte) {
+      error("No se puede usar 'notas' y 'parte' al mismo tiempo en un instrumento.");
+    }
+     
+     pista = completeMusicalObject(pista);
+
+    if (pista.parte.type === "acompañamiento" || pista.parte.type === "acompañamiento"){
+      if (pista.name != "teclado") {
+			error(` ${pista.name} no usa ${pista.parte.type}.`);     
+        }    
+     }
+     
+     if (pista.parte.type === "tumbao"){
+     	if (pista.name != "bajo") {
+     		error(` ${pista.name} no usa ${pista.parte.type}`);     
+     	}    
+     }  
+   
+   if (pista.parte.type === "ritmo"){
+     	if (pista.name != "bombo" && pista.name != "contratiempo" && pista.name != "contratiempos" && pista.name != "contras") {
+     		error(` ${pista.name} no usa ${pista.parte.type}`);     
+     	}    
+     }
+     
+
+            
+    // Find if an instrument with the same name and id already exists
+    let existingIndex = datosDelPrograma.pistas.findIndex(obj => obj.name === pista.name && obj.id === pista.id);
+
+    if (existingIndex !== -1) {
+      // If found, overwrite the existing object
+      datosDelPrograma.pistas[existingIndex] = Object.assign(datosDelPrograma.pistas[existingIndex], pista);
+    } else {
+      // Otherwise, add the new instrument
+      datosDelPrograma.pistas.push(pista);
+    }
+
+    return datosDelPrograma.pistas;
 }
-}  
 
 instrumentIdentifier
-  = i:"bajo" { return createProperty("name", i)}
-  / i:"teclado2" { return createProperty("name", i)}
-  / i:"teclado" { return createProperty("name", i)}
+  = i:"bajo" {return createProperty("name", i)}
+  / i:"teclado" {return createProperty("name", i)}
   / i:"bombo" {return createProperty("name", i)}
-  / i:("contras"/"contratiempos" / "contratiempo") {return createProperty("name", i)}
+  / i:("contras" / "contratiempos" / "contratiempo") {return createProperty("name", i)}
   / i:"congas" {return createProperty("name", i)}
   
 
@@ -210,6 +260,7 @@ listaDePropiedades
   
 propiedad 
   = _ k:("sonido" / "s") _ v:entero _ {return createProperty("sonido", v)}
+  / _ k:("id") _ "\"" _ v:string _ "\"" _ {return createProperty("id", v)}
   / _ k:("paneo" / "p") _ v:decimal _ {
   if (v >= 0 && v <= 1) {
   return createProperty("paneo", v);
@@ -225,12 +276,14 @@ propiedad
   }
   }
   / _ k:("octava" / "o") _ v:entero _ {return createProperty("octavaAbsoluta", v)}
-  / _ k:("notas" / "n") _ v:(notaSola / listaDeNotas) _ {return createProperty("notas", v)}
-  / _ k:("parte" / "tumbao" / "acompañamiento" / "acompanamiento" / "ritmo") _ v:listaDeCompases _ {
+  / _ k:("notas" / "n") _ v:(notaSola / listaDeNotas / notaMidiSola / listaDeNotasMidi) _ {return createProperty("notas", v)}
+  / _ k:("tumbao" / "acompañamiento" / "acompanamiento" / "ritmo") _ v:listaDeCompases _ {
          if (v.length == 0) {
-           return error(k + " " + 'requiere uno o más compases')
-          } else return createProperty("parte", v)
-   }
+         return error(k + " " + 'requiere uno o más compases')
+       } else {
+       return createNestedProperty("parte", { type: k, parteList: v });
+}
+}
 
 // TODO lista de lista de parte
 listaDeCompases
@@ -259,9 +312,15 @@ parte
 listaDeNotas
   = _ "[" _ notaOListaDeNotas:listaDeNotaOlistaDeNotas? _ "]" _ { return notaOListaDeNotas || []; }
 
+listaDeNotasMidi
+  = _ "[" _ notaMidiOListaDeNotasMidi:listaDeNotaidiOlistaDeNotasMidi? _ "]" _ { return notaMidiOListaDeNotasMidi || []; }
+
 listaDeNotaOlistaDeNotas =  notaOListaDeNotas|.., _ "," _| 
 
+listaDeNotaidiOlistaDeNotasMidi =  notaMidiOListaDeNotasMidi|.., _ "," _| 
+
 notaOListaDeNotas =  silencio / nota / acorde / listaDeNotas 
+notaMidiOListaDeNotasMidi = silencio / notaMidi / listaDeNotasMidi
 
 acorde = "\"" _ n1:nota _ n2:nota? _ n3:nota? _ n4:nota? _ n5:nota? _ "\"" {
 return crearAcorde([n1, n2, n3, n4, n5]) }
@@ -271,6 +330,9 @@ silencio = "~" {return null}
 notaSola
  = n:nota {return [n]}
  
+ notaMidiSola
+ = n:notaMidi {return [n]}
+ 
 nota
   = letra:letra alteracion:alteracion? octava:entero {
   if (alteracion == null) {
@@ -279,6 +341,11 @@ nota
       return (letra + alteracion + octava)
   }
 }
+
+notaMidi
+  = n:entero {
+   return n
+   }
 
 cualidad
    = "mayor" {return 'maj'} / "maj" / "min" / "menor" {return 'min'} / "m" / "M"

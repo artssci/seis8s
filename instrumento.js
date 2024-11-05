@@ -1,22 +1,19 @@
 import * as a from "./armonia.js";
-
-///////////// list of samples /////////////////////
-const listaDeSonidosDelBajo = [{nombre: "bajoSintetico/"}, {nombre: "bajoAcustico/"}, {nombre: "bajoAspero/"}, {nombre: "bajoConDedos/"}, {nombre: "bajoFretless/"}, {nombre: "bajoPlumeado/"}, {nombre: "bajoSlap/"}]
-
-const listaDeSonidosDelTeclado = [{nombre: "stereoGrPiano/"}, {nombre: "stereoPiano/"}, {nombre: "laPiano/"}, {nombre: "electricPiano/"}, {nombre: "stringsPiano/"}, {nombre: "dancePiano/"}, {nombre: "drawBarOrgan/"}, {nombre: "squareLead/"}, {nombre: "sawLead/"}]
-
-const listaDeSonidosDelBombo = [{nombre: "bomboRoomSet/"}, {nombre: "bomboStandardSet4/"}]
-
-const listaDeSonidosDelContratiempo = [{nombre: "contrasRoomSet/"}, {nombre: "contrasStandardSet4/"}]
+import * as r from "./ritmo.js";
+import * as s from './sonidos.js';
 
 
-// linear transformation para normalizar/mapear 0 a -60db y 1 a 0db
+///////////// linear transformation para normalizar/mapear 0 a -60db y 1 a 0db ///////////// 
+
+// :: Number => Number
 function normalizarVolumen(v){
   return ((60 * v) - 60)
 }
 
-// :: number
-function establecerTempo(t){
+///////////// Establecer Tempo ///////////// 
+
+// :: number => Number
+export function establecerTempo(t){
   if (Tone.Transport.state !== "started") {
   Tone.Transport.bpm.value = t; // Set the tempo to 120 BPM
   Tone.Transport.start();
@@ -25,231 +22,394 @@ function establecerTempo(t){
  }
 }
 
+///////////// Detener secuencia ///////////// 
 
-export function stopSequence(){
+export function stopSequence() {
+  // Stop the transport
   Tone.Transport.stop();
+
+  // Dispose of all samplers
+  Object.keys(bomboSampler).forEach(id => {
+    bomboSampler[id].dispose();
+    delete bomboSampler[id];  // Remove reference
+  });
+
+  // Dispose of all channels
+  Object.keys(canalDelBombo).forEach(id => {
+    canalDelBombo[id].dispose();
+    delete canalDelBombo[id];  // Remove reference
+  });
+  
+   // Dispose of all samplers
+  Object.keys(contrasSampler).forEach(id => {
+    contrasSampler[id].dispose();
+    delete contrasSampler[id];  // Remove reference
+  });
+
+  // Dispose of all channels
+  Object.keys(canalDelContratiempo).forEach(id => {
+    canalDelContratiempo[id].dispose();
+    delete canalDelContratiempo[id];  // Remove reference
+  });
+  
+  
+    // Dispose of all samplers
+  Object.keys(tecladoSampler).forEach(id => {
+    tecladoSampler[id].dispose();
+    delete tecladoSampler[id];  // Remove reference
+  });
+
+  // Dispose of all channels
+  Object.keys(canalDelTeclado).forEach(id => {
+    canalDelTeclado[id].dispose();
+    delete canalDelTeclado[id];  // Remove reference
+  });
+  
+    // Dispose of all samplers
+  Object.keys(bajoSampler).forEach(id => {
+    bajoSampler[id].dispose();
+    delete bajoSampler[id];  // Remove reference
+  });
+
+  // Dispose of all channels
+  Object.keys(canalDelBajo).forEach(id => {
+    canalDelBajo[id].dispose();
+    delete canalDelBajo[id];  // Remove reference
+  });
+
+ // Dispose of all sequences
+  Object.keys(sequences).forEach(id => {
+    sequences[id].stop();   // Stop the sequence
+    sequences[id].dispose(); // Dispose of the sequence
+    delete sequences[id];    // Remove reference
+  });
+
+  // Reset Transport position if needed
+  Tone.Transport.position = 0;
+
+  
 }
 
-// function bomboSamplerF(sonidoBombo, volumen, paneo) {
-//   let bomboSampler = new Tone.Sampler({
-//       urls: { C4: "C2.wav" },
-//       release: 1,
-//       baseUrl: "https://luisnavarrodelangel.github.io/sonidos-seis8s/" + sonidoBombo
-//     });
-//        // Create channel for the bass
-//     let canalDelBombo = new Tone.Channel({
-//       volume: normalizarVolumen(volumen),  // Volume in decibels
-//       pan: (paneo * 2) - 1,  // Panning from -1 (left) to 1 (right)
-//     }).toDestination();     
-
-//     // Connect sampler to the channel
+export function desconectarPistasBorradas(id) {
+        // Stop and dispose of any sequences if they exist
+    if (sequences[id]) {
+      sequences[id].stop();
+      sequences[id].dispose();
+      delete sequences[id];
+      console.log(`Sequence ${id} disposed`);
+    }
   
-//    bomboSampler.connect(canalDelBombo);
-// }
+    if (bomboSampler[id]) {
+      bomboSampler[id].releaseAll();
+      bomboSampler[id].disconnect();
+      bomboSampler[id].dispose();
+      delete bomboSampler[id];
+    }
 
-let seq1, seq2, seq3, seq4, seq5, canalDelBajo, canalDelTeclado2, canalDeContratiempos;
+    if (canalDelBombo[id]) {
+      canalDelBombo[id].disconnect();
+      canalDelBombo[id].dispose();
+      delete canalDelBombo[id];
+    }
+  
+   if (contrasSampler[id]) {
+      contrasSampler[id].releaseAll();
+      contrasSampler[id].disconnect();
+      contrasSampler[id].dispose();
+      delete contrasSampler[id];
+    }
 
-// Global bomboSampler and canalDelBombo, initialized only once
-let bomboSampler = null;
-let canalDelBombo = null;
+    if (canalDelContratiempo[id]) {
+      canalDelContratiempo[id].disconnect();
+      canalDelContratiempo[id].dispose();
+      delete canalDelContratiempo[id];
+    }
+  
+  if (tecladoSampler[id]) {
+      tecladoSampler[id].releaseAll();
+      tecladoSampler[id].disconnect();
+      tecladoSampler[id].dispose();
+      delete tecladoSampler[id];
+    }
 
-function bomboSamplerF(sonidoBombo, volumen, paneo) {
-  // Initialize the sampler if it's not already created
-    bomboSampler = new Tone.Sampler({
+    if (canalDelTeclado[id]) {
+      canalDelTeclado[id].disconnect();
+      canalDelTeclado[id].dispose();
+      delete canalDelTeclado[id];
+    }
+  
+  if (bajoSampler[id]) {
+      bajoSampler[id].releaseAll();
+      bajoSampler[id].disconnect();
+      bajoSampler[id].dispose();
+      delete bajoSampler[id];
+    }
+
+    if (canalDelBajo[id]) {
+      canalDelBajo[id].disconnect();
+      canalDelBajo[id].dispose();
+      delete canalDelBajo[id];
+    }
+}
+
+
+
+///////////// Definiciones globales de instrumentos ///////////// 
+
+// let seq1, seq2, seq3, seq4, seq5, canalDelTeclado2;
+let sequences = {};  // Object to store sequences dynamically by id
+
+///////////// Sampler del bombo ///////////// 
+
+
+let bomboSampler = {};  // Initialize bomboSampler as an object to store multiple samplers
+let canalDelBombo = {}; // Initialize canalDelBombo as an object to store multiple channels
+
+function bomboSamplerF(sonidoBombo, id, volumen, paneo) {
+  
+  let newBaseUrl = "https://luisnavarrodelangel.github.io/sonidos-seis8s/" + sonidoBombo;
+
+  // Initialize the sampler if it's not already created  
+  if (!bomboSampler[id] || bomboSampler[id].baseUrl !== newBaseUrl) {
+    bomboSampler[id] = new Tone.Sampler({
       urls: { C4: "C2.wav" },
       release: 1,
-      baseUrl: "https://luisnavarrodelangel.github.io/sonidos-seis8s/" + sonidoBombo
+      baseUrl: newBaseUrl
     });
+  }
+
+  // Initialize the channel if not created yet
+  if (!canalDelBombo[id]) {
+    canalDelBombo[id] = new Tone.Channel({
+      volume: normalizarVolumen(volumen), // Initial volume
+      pan: (paneo * 2) - 1,  // Initial pan
+    }).toDestination();
+  } else {
+    // If the channel already exists, update its parameters
+    canalDelBombo[id].volume.value = normalizarVolumen(volumen);
+    canalDelBombo[id].pan.value = (paneo * 2) - 1;
+  }
+
+  // Connect the sampler to its corresponding channel
+  bomboSampler[id].connect(canalDelBombo[id]);  // Connect the sampler to the channel
+}
+
+
+
+///////////// Sampler de los contratiempos /////
+let contrasSampler = {};
+let canalDelContratiempo = {};
+
+
+function contrasSamplerF(sonidoContratiempos, id, volumen, paneo) {
+  
+  let newBaseUrl = "https://luisnavarrodelangel.github.io/sonidos-seis8s/" + sonidoContratiempos;
+
+  // Initialize the sampler if it's not already created
+  if (!contrasSampler[id] || contrasSampler[id].baseUrl !== newBaseUrl) {
+  contrasSampler[id] = new Tone.Sampler({
+      urls: { C4: "F#2.wav" },
+      release: 1,
+      baseUrl: newBaseUrl
+    });
+}
 
     // Initialize the channel if not created yet
-      canalDelBombo = new Tone.Channel({
+    if (!canalDelContratiempo[id]) {
+      canalDelContratiempo[id] = new Tone.Channel({
         volume: normalizarVolumen(volumen), // Initial volume
         pan: (paneo * 2) - 1,  // Initial pan
       }).toDestination();
-      
-      bomboSampler.connect(canalDelBombo);  // Connect once
-    
-
-  // Update the sampler's sound if it has changed
-  let newBaseUrl = "https://luisnavarrodelangel.github.io/sonidos-seis8s/" + sonidoBombo;
-  if (bomboSampler.baseUrl !== newBaseUrl) {
-    bomboSampler.releaseAll(); // Stop all currently playing notes
-    bomboSampler.baseUrl = newBaseUrl;  // Update base URL to the new sound
+    } else {
+    // If the channel already exists, update its parameters
+    canalDelContratiempo[id].volume.value = normalizarVolumen(volumen);
+    canalDelContratiempo[id].pan.value = (paneo * 2) - 1;
   }
+      
+      contrasSampler[id].connect(canalDelContratiempo[id]);  // Connect once
 
-  // Update the volume and pan with smooth transitions
-  canalDelBombo.volume.rampTo(normalizarVolumen(volumen), 0.5); // Smooth volume ramp
-  canalDelBombo.pan.rampTo((paneo * 2) - 1, 0.5);  // Smooth pan ramp
 }
 
+   
+   
 
+///////////// Sampler del Teclado ///////////// 
 
-let tecladoSampler = null;
-let canalDelTeclado = null;
+let tecladoSampler = {};
+let canalDelTeclado = {};
 
-function tecladoSamplerF(sonidoTeclado, volumen, paneo) {
+function tecladoSamplerF(sonidoTeclado, id, volumen, paneo) {
+  
+   let newBaseUrl = "https://luisnavarrodelangel.github.io/sonidos-seis8s/" + sonidoTeclado;
 
-
-   tecladoSampler = new Tone.Sampler({
+  
+  if (!tecladoSampler[id] || tecladoSampler[id].baseUrl !== newBaseUrl) {
+   tecladoSampler[id] = new Tone.Sampler({
         urls: {
           C5: "C5.wav"
         },
-        release: 1, baseUrl: "https://luisnavarrodelangel.github.io/sonidos-seis8s/" + sonidoTeclado
+        release: 1, 
+        baseUrl: newBaseUrl
+
       });
-    
-   canalDelTeclado = new Tone.Channel({
+  }
+  
+  if (!canalDelTeclado[id]) {    
+   canalDelTeclado[id] = new Tone.Channel({
     volume:  normalizarVolumen(volumen), // Volume in decibels
     pan: (paneo * 2) -1,    // Panning from 0 (left) to 1 (right)
   }).toDestination();
+  } else {
+    // If the channel already exists, update its parameters
+    canalDelTeclado[id].volume.value = normalizarVolumen(volumen);
+    canalDelTeclado[id].pan.value = (paneo * 2) - 1;
+  }
 
-   tecladoSampler.connect(canalDelTeclado);
+   tecladoSampler[id].connect(canalDelTeclado[id]);
+
+}
+
+///////////// Sampler del Bajo ///////////// 
+
+let bajoSampler = {};
+let canalDelBajo = {};
+
+function bajoSamplerF(sonidoBajo, id, volumen, paneo) {
+    
+  // Check if the sound has changed
+  let newBaseUrl = "https://luisnavarrodelangel.github.io/sonidos-seis8s/" + sonidoBajo;
+
+  // Initialize or update the sampler if the sound has changed
+  if (!bajoSampler[id] || bajoSampler[id].baseUrl !== newBaseUrl) {
+    
+     bajoSampler[id] = new Tone.Sampler({
+        urls: {
+          C4: "C4.wav"
+        },
+        release: 1, 
+        baseUrl: newBaseUrl // Set the new sound URL
+      });
+    } 
   
-  let newBaseUrl = "https://luisnavarrodelangel.github.io/sonidos-seis8s/" + sonidoTeclado;
-  if (tecladoSampler.baseUrl !== newBaseUrl) {
-    tecladoSampler.releaseAll(); // Stop all currently playing notes
-    tecladoSampler.baseUrl = newBaseUrl;  // Update base URL to the new sound
-  } 
+  if (!canalDelBajo[id]) {
+   canalDelBajo[id] = new Tone.Channel({
+    volume:  normalizarVolumen(volumen), // Volume in decibels
+    pan: (paneo * 2) -1,    // Panning from 0 (left) to 1 (right)
+  }).toDestination();
+  } else {
+    // If the channel already exists, update its parameters
+    canalDelBajo[id].volume.value = normalizarVolumen(volumen);
+    canalDelBajo[id].pan.value = (paneo * 2) - 1;
+  }
+
+   bajoSampler[id].connect(canalDelBajo[id]);
 }
 
 
 
-function playSequence(armonia, instrumento, volumen, paneo, indiceSonido, cuantizar, notas, parte, octavaAbsoluta) {
+///////////// Toca secuencia ///////////// 
+
+  // let seq;
+
+export function tocaSecuencia(armonia, instrumento, id, volumen, paneo, indiceSonido, cuantizar, notas, parte, octavaAbsoluta) {
   
-  // Stop and dispose of any existing sequences or channels
-//   if (seq1) {
-//     seq1.stop();
-//     seq1.dispose();
-//     seq1 = null;  // Clear reference
-//   }
+  // const id = instrumento + "_" + identificador; //bajo_default
 
-//   if (seq2) {
-//     seq2.stop();
-//     seq2.dispose();
-//     seq2 = null;  // Clear reference
-//   }
+  if (sequences[id]) {
+    sequences[id].stop();
+    sequences[id].dispose();
+    // sequences[id] = null;
+    delete sequences[id];  // Remove the reference to the old sequence
 
-//   if (canalDelBajo) {
-//     canalDelBajo.dispose();
-//     canalDelBajo = null;  // Clear reference
-//   }
+  }
 
-//   if (canalDelTeclado) {
-//     canalDelTeclado.dispose();
-//     canalDelTeclado = null;  // Clear reference
-//   }
+  ///////////// Bajo /////////////
 
-  // Bajo
   if (instrumento === "bajo") {
-    
-    if (seq1) {
-      seq1.stop();
-      seq1.dispose();
-      seq1 = null;
-    }
 
-    // if (canalDelBajo) {
-    //   canalDelBajo.dispose();
-    //   canalDelBajo = null;
-    // }
-
-    let sonidoBajo = listaDeSonidosDelBajo[indiceSonido].nombre;
-
-    // Create bajoSampler and ensure it's fully loaded before triggering anything
-    let bajoSampler = new Tone.Sampler({
-      urls: { C4: "C4.wav" },
-      release: 1,
-      baseUrl: "https://luisnavarrodelangel.github.io/sonidos-seis8s/" + sonidoBajo
-    });
-
-    // Create channel for the bass
-    canalDelBajo = new Tone.Channel({
-      volume: normalizarVolumen(volumen),  // Volume in decibels
-      pan: (paneo * 2) - 1,  // Panning from -1 (left) to 1 (right)
-    }).toDestination();
-    
-      
-
-    // Connect sampler to the channel
-    bajoSampler.connect(canalDelBajo);
-
-    // Ensure sampler is fully loaded before starting the sequence
-   
- canalDelBajo.volume.rampTo(normalizarVolumen(volumen), 0.1); // Smooth volume change over 0.5 seconds
-  canalDelBajo.pan.rampTo((paneo * 2) - 1, 0.1); // Smooth pan change over 0.5 seconds
+    let sonidoBajo = s.sonidos.bajo[indiceSonido].nombre;
+    bajoSamplerF(sonidoBajo, id, volumen, paneo)
 
      
-      if (notas.length > 0 && parte.length === 0) {  // Logical operator corrected
-        console.log("Starting sequence!");
+      if (parte.length == 0 ) {  
+        console.log("¡Comenzando secuencia del bajo!");
 
         // Create and start the sequence
-        
+          
       Tone.loaded().then(() => {
       console.log("Sampler fully loaded!");
-        seq1 = new Tone.Sequence((time, note) => {
-          bajoSampler.triggerAttackRelease(note, 0.1, time);
+        sequences[id] = new Tone.Sequence((time, note) => {
+        const letterNote = typeof note === "number" 
+        ? Tone.Frequency(note, "midi").toNote()  // condition ? expressionIfTrue : expressionIfFalse;
+        : note;
+          bajoSampler[id].triggerAttackRelease(letterNote, 0.1, time);
         }, notas, '1m');   // '1m' represents one measure as the interval
 
-        seq1.start(0);
-      
+        sequences[id].start(0);
+
       });
-//  bajo (n [[@], [𝅗𝅥 𝅗𝅥], [𝅘𝅥 𝅘𝅥 𝅘𝅥 𝅘𝅥], []])   
-    
-  } else if (notas.length > 0 && parte.length > 0) {
-     console.log("parte!")
-        
+
+      //  bajo (n [[@], [𝅗𝅥 𝅗𝅥], [𝅘𝅥 𝅘𝅥 𝅘𝅥 𝅘𝅥], []])   
+  } else if (parte.length > 0) {
+     console.log("¡Comenzando tumbao del bajo!")
+
      let _armonia = a.armoniaEnNotasExplicitas(armonia);    
-     let _parte = a.armoniaEnGradosAarmoniaEnNotas(parte, _armonia, octavaAbsoluta);
-     console.log('parteBajo', _parte)
-    // let p =  [{ "time": "0:0:0", "note": 'C4', "duration": "4n" }, { "time": "0:1:0", "note": null, "duration": "4n" }, { "time": "0:2:0", "note": 'E4', "duration": "4n" }, { "time": "0:3:0", "note": 'G4', "duration": "4n" }]
- 
-    // let p =  [[{ "time": "0:0:0", "note": 1, "duration": "4n" }, { "time": "0:1:0", "note": null, "duration": "4n" }, { "time": "0:2:0", "note": 3, "duration": "4n" }, { "time": "0:3:0", "note": 5, "duration": "4n" } ]]
-   
-    
-    // let filteredParte = _parte.flat().filter(event => event.note !== null);
-    // console.log("parte", filteredParte);
+     let _parte = a.lineaDelBajo(parte, _armonia, octavaAbsoluta);
 
      Tone.loaded().then(() => {
-       seq1 = new Tone.Part((time, value) => {
-        bajoSampler.triggerAttackRelease(value.note, value.duration, time);
+       sequences[id] = new Tone.Part((time, value) => {
+        bajoSampler[id].triggerAttackRelease(value.note, value.duration, time);
     }, _parte).start(0);
-      seq1.loop = true; // Enable looping
+       
+       
+      console.log('Sequence created for bajo', id, sequences[id]);
+
+       sequences[id].loop = true; // Enable looping
   
        let numeroDeCompases = a.numberOfMeasures(_parte);
-       seq1.loopEnd = numeroDeCompases + 1 + "m"
+       sequences[id].loopEnd = numeroDeCompases + 1 + "m"
+              
+
      })
   }
 }
     
-//     Teclado
+///////////// Teclado /////////////
+
   if (instrumento === "teclado"){
+      
+    let sonidoTeclado = s.sonidos.teclado[indiceSonido].nombre;  
+    tecladoSamplerF(sonidoTeclado, id, volumen, paneo);
     
-    if (seq2) {
-      seq2.stop();
-      seq2.dispose();
-      seq2 = null;
-    }
-
-    // if (canalDelTeclado) {
-    //   canalDelTeclado.dispose();
-    //   canalDelTeclado = null;
-    // }
-    
-    // let secuenciaDeNotasYacordes = crearAcordeDesdeLista(['E4', 'C4 D5 E5   ']); 
-    let secuenciaDeNotasYacordes = a.crearAcordeDesdeLista(notas); 
-     
-    let sonidoTeclado = listaDeSonidosDelTeclado[indiceSonido].nombre;  
-    tecladoSamplerF(sonidoTeclado, volumen, paneo)
+     if (parte.length  == 0) {  // Logical operator corrected
+        console.log("¡Comenzando secuencia del teclado!");
   
+// let secuenciaDeNotasYacordes = crearAcordeDesdeLista(['E4', 'C4 D5 E5   ']); 
+//     let secuenciaDeNotasYacordes = a.crearAcordeDesdeLista(notas); 
+//    console.log("sec de notas y acordes", secuenciaDeNotasYacordes)
 
-//    Tone.loaded().then(() => {
+//        Tone.loaded().then(() => {
 //       secuenciaDeNotasYacordes.forEach(function (n, index){            
 //         new Tone.Sequence((time, note) => {
-//          tecladoSampler.triggerAttackRelease(note, 0.1, time);
+//          tecladoSampler[id].triggerAttackRelease(note, 0.1, time);
 // }, n, '1m').start(0);
 //       });
 //    });
+       
+ 
+    Tone.loaded().then(() => {
+       sequences[id] =  new Tone.Sequence((time, note) => {
+         const letterNote = typeof note === "number" 
+        ? Tone.Frequency(note, "midi").toNote()  // condition ? expressionIfTrue : expressionIfFalse;
+        : note;
+         tecladoSampler[id].triggerAttackRelease(letterNote, 0.1, time);
+    }, notas, '1m').start(0);
+      });
+
+       
                     
-// }
+} else if (parte.length > 0) {
+     console.log("¡Comenzando acompañamiento del teclado!")
     
     // const parteTeclado = [{ "time": "0:1:0", "note": ['C4', 'E4', 'G4'], "duration": "4n" }, { "time": "0:3:0", "note": ['G4', 'B4', 'D4'], "duration": "4n" }]
 //  // :: [{time, note, duration} , ... ] -> [{tonal chord}] -> [{time, note duration}, ...]
@@ -259,150 +419,75 @@ function playSequence(armonia, instrumento, volumen, paneo, indiceSonido, cuanti
     let acorde = Tonal.Chord.get('Cmaj')
     
     // let parteTeclado_ =  a.asignarNotasSegunGradosDelAcordeTeclado(eParte, acorde, octavaAbsoluta);
-    let parteTeclado_ =  a.armoniaEnGradosAarmoniaEnNotasTeclado(parte, armoniaT, octavaAbsoluta);
-    console.log('parteTeclado', parteTeclado_)
+    let parteTeclado_ =  a.acordesDelTeclado(parte, armoniaT, octavaAbsoluta);
     
     // :: [{time, note, duration} , ... ] -> [{tonal chord}] -> [{time, note duration}, ...]
  // function listaDeGradosAlistaDeNotasTeclado(elementosParteList, chordPropertiesList, octavaAbsoluta)
           
      Tone.loaded().then(() => {
-       seq2 = new Tone.Part((time, value) => {
-        tecladoSampler.triggerAttackRelease(value.note, value.duration, time);  
+       sequences[id] = new Tone.Part((time, value) => {
+        tecladoSampler[id].triggerAttackRelease(value.note, value.duration, time);  
          // console.log("acorde", value.note);
     }, parteTeclado_).start(0);
-      seq2.loop = true; // Enable looping
+
+       console.log('Sequence created for teclado' + id.toString(), id, sequences[id]);
+
+      sequences[id].loop = true; // Enable looping
   
        let numeroDeCompases = a.numberOfMeasures(parteTeclado_);
-       seq2.loopEnd = numeroDeCompases + 1 + "m"
-     })
-  }
+       sequences[id].loopEnd = numeroDeCompases + 1 + "m"
+     });
+  } 
+}
   
   
-  //     Teclado2
-  if (instrumento === "teclado2"){
-    
-    if (seq5) {
-      seq5.stop();
-      seq5.dispose();
-      seq5 = null;
-    }
-
-//     if (canalDelTeclado2) {
-//       canalDelTeclado2.dispose();
-//       canalDelTeclado2 = null;
-//     }
-    
-    // let secuenciaDeNotasYacordes = crearAcordeDesdeLista(['E4', 'C4 D5 E5   ']); 
-    let secuenciaDeNotasYacordes = a.crearAcordeDesdeLista(notas); 
-     
-    let sonidoTeclado = listaDeSonidosDelTeclado[indiceSonido].nombre;  
-    
-    let tecladoSampler = new Tone.Sampler({
-        urls: {
-          C5: "C5.wav"
-        },
-        release: 1, baseUrl: "https://luisnavarrodelangel.github.io/sonidos-seis8s/" + sonidoTeclado
-      });
-    
-   canalDelTeclado2 = new Tone.Channel({
-    volume:  normalizarVolumen(volumen), // Volume in decibels
-    pan: (paneo * 2) -1,    // Panning from 0 (left) to 1 (right)
-  }).toDestination();
-
-   tecladoSampler.connect(canalDelTeclado2);
-
-// Ensure samples are loaded
-  Tone.loaded().then(() => {
-    // Create a new sequence to handle all notes and chords
-      seq5 = new Tone.Sequence((time, note) => {
-         tecladoSampler.triggerAttackRelease(note, 0.1, time);
-}, notas, '1m').start(0);
-  });
-    
-//    Tone.loaded().then(() => {
-//       secuenciaDeNotasYacordes.forEach(function (n, index){            
-//         seq5 = new Tone.Sequence((time, note) => {
-//          tecladoSampler.triggerAttackRelease(note, 0.1, time);
-// }, n, '1m').start(0);
-//       });
-//    });
-                    
-
-    
-   
-//     let armoniaT = a.armoniaEnNotasExplicitas(armonia);    
-//     let eParte = { "time": "0:0:0", "note": 1, "duration": "4n", "octavaRelativa": 0 }
-//     let acorde = Tonal.Chord.get('Cmaj')
-    
-//     // let parteTeclado_ =  a.asignarNotasSegunGradosDelAcordeTeclado(eParte, acorde, octavaAbsoluta);
-//     let parteTeclado_ =  a.armoniaEnGradosAarmoniaEnNotasTeclado(parte, armoniaT, octavaAbsoluta);
-//     console.log('parteTeclado', parteTeclado_)
-    
-//     // :: [{time, note, duration} , ... ] -> [{tonal chord}] -> [{time, note duration}, ...]
-//  // function listaDeGradosAlistaDeNotasTeclado(elementosParteList, chordPropertiesList, octavaAbsoluta)
-          
-//      Tone.loaded().then(() => {
-//        seq5 = new Tone.Part((time, value) => {
-//         tecladoSampler.triggerAttackRelease(value.note, value.duration, time);  
-//          // console.log("acorde", value.note);
-//     }, parteTeclado_).start(0);
-//       seq2.loop = true; // Enable looping
   
-//        let numeroDeCompases = a.numberOfMeasures(parteTeclado_);
-//        seq5.loopEnd = numeroDeCompases + 1 + "m"
-//      })
-  }
-  
-  
-   if (instrumento === "bombo") {
-    
-    if (seq3) {
-      seq3.stop();
-      seq3.dispose();
-      seq3 = null;
-    }
+  ///////////// Bombo /////////////
 
-    // if (canalDelBombo) {
-    //   canalDelBombo.dispose();
-    //   canalDelBombo = null;
-    // }
+
+   if (instrumento === "bombo") {   
      
      
 
-    let sonidoBombo = listaDeSonidosDelBombo[indiceSonido].nombre;
-
-   
- // Update the existing sampler and channel with new sound, volume, and pan
-  bomboSamplerF(sonidoBombo, volumen, paneo);
-
-     // Apply smooth transitions for volume and pan
-  // canalDelBombo.volume.rampTo(normalizarVolumen(volumen), 0.1); // Smooth volume change over 0.5 seconds
-  // canalDelBombo.pan.rampTo((paneo * 2) - 1, 0.1); // Smooth pan change over 0.5 seconds
-
+    let sonidoBombo = s.sonidos.bombo[indiceSonido].nombre;
+     bomboSamplerF(sonidoBombo, id, volumen, paneo);
      
-     function p(parteNonFlattened) {
-      let parteFlattened = parteNonFlattened.flat();
-      let filteredParte = parteFlattened.filter(e => e.note !== null);
-      filteredParte.forEach(e => e.note = 'C4');
-      return filteredParte;
-    }
+     if (parte.length == 0 ) {  
+        console.log("¡Comenzando secuencia del bombo!");
 
-     
-       let parte_ =  p(parte)
-
-     
-     // console.log("parte bombo", parte_)
-     
+        // Create and start the sequence
+        
       Tone.loaded().then(() => {
-       seq3 = new Tone.Part((time, value) => {
-        bomboSampler.triggerAttackRelease(value.note, value.duration, time);
-    }, parte_).start(0);
-      seq3.loop = true; // Enable looping
+      console.log("Sampler fully loaded!");
+        sequences[id] = new Tone.Sequence((time, note) => {
+          bomboSampler[id].triggerAttackRelease(note, 0.1, time);
+        }, notas, '1m');   // '1m' represents one measure as the interval
+
+        sequences[id].start(0);
+
+      });
+
+  } else if (parte.length > 0) {
+     console.log("¡Comenzando ritmo del bombo!")
+
+      let parteDelBombo =  r.filtrarYaplanarParte(parte)
+
+      Tone.loaded().then(() => {
+       sequences[id] = new Tone.Part((time, value) => {
+        bomboSampler[id].triggerAttackRelease(value.note, value.duration, time);
+    }, parteDelBombo).start(0);
+        
+      console.log('Sequence created for bombo' + id.toString(), id, sequences[id]);
+
+      sequences[id].loop = true; // Enable looping
   
-       let numeroDeCompases = a.numberOfMeasures(parte_);
-       seq3.loopEnd = numeroDeCompases + 1 + "m"
+       let numeroDeCompases = a.numberOfMeasures(parteDelBombo);
+       sequences[id].loopEnd = numeroDeCompases + 1 + "m"
      })
    }
+   }
+  
+  
   
   
   ///////////////contratiempos
@@ -410,82 +495,46 @@ function playSequence(armonia, instrumento, volumen, paneo, indiceSonido, cuanti
   
   if (instrumento === "contratiempo" || instrumento === "contratiempos" || instrumento === "contras")  {
     
-    if (seq4) {
-      seq4.stop();
-      seq4.dispose();
-      seq4 = null;
-    }
+    let sonidoContratiempos = s.sonidos.contratiempo[indiceSonido].nombre;
+    contrasSamplerF(sonidoContratiempos, id, volumen, paneo);     
+  
+    if (parte.length == 0 ) {  
+        console.log("¡Comenzando secuencia del contratiempo!");
 
-    // if (canalDeContratiempos) {
-    //   canalDeContratiempos.dispose();
-    //   canalDeContratiempos = null;
-    // }
-     
-     
+        // Create and start the sequence
+        
+      Tone.loaded().then(() => {
+      console.log("Sampler fully loaded!");
+        sequences[id] = new Tone.Sequence((time, note) => {
+          contrasSampler[id].triggerAttackRelease(note, 0.1, time);
+        }, notas, '1m');   // '1m' represents one measure as the interval
 
-    let sonidoContratiempos = listaDeSonidosDelContratiempo[indiceSonido].nombre;
+        sequences[id].start(0);
 
-    // Create bajoSampler and ensure it's fully loaded before triggering anything
-    let contratiemposSampler = new Tone.Sampler({
-      urls: { C4: "F#2.wav" },
-      release: 1,
-      baseUrl: "https://luisnavarrodelangel.github.io/sonidos-seis8s/" + sonidoContratiempos
-    });    
-     
-     
-       // Create channel for the bass
-    canalDeContratiempos = new Tone.Channel({
-      volume: normalizarVolumen(volumen),  // Volume in decibels
-      pan: (paneo * 2) - 1,  // Panning from -1 (left) to 1 (right)
-    }).toDestination();
+      });
+
+  } else if (parte.length > 0) {
+     console.log("¡Comenzando ritmo del contratiempo!")
+
     
-      
-
-    // Connect sampler to the channel
-    contratiemposSampler.connect(canalDeContratiempos);
-
-     
-     function p(parteNonFlattened) {
-      let parteFlattened = parteNonFlattened.flat();
-      let filteredParte = parteFlattened.filter(e => e.note !== null);
-      filteredParte.forEach(e => e.note = 'C4');
-      return filteredParte;
-    }
-
-     
-       let parte_ =  p(parte)
-
-     
-     console.log("parte contras", parte_)
+    let parteDelContratiempo =  r.filtrarYaplanarParte(parte)
      
       Tone.loaded().then(() => {
-       seq4 = new Tone.Part((time, value) => {
-        contratiemposSampler.triggerAttackRelease(value.note, value.duration, time);
-    }, parte_).start(0);
-      seq4.loop = true; // Enable looping
+       sequences[id] = new Tone.Part((time, value) => {
+        contrasSampler[id].triggerAttackRelease(value.note, value.duration, time);
+    }, parteDelContratiempo).start(0);
+        
+      console.log('Sequence created for contras' + id.toString(), id, sequences[id]);
+
+      sequences[id].loop = true; // Enable looping
   
-       let numeroDeCompases = a.numberOfMeasures(parte_);
-       seq4.loopEnd = numeroDeCompases + 1 + "m"
+       let numeroDeCompases = a.numberOfMeasures(parteDelContratiempo);
+       sequences[id].loopEnd = numeroDeCompases + 1 + "m"
      });
    }
   }
-  
-
-
-
-// :: Object -> [Object] 
-export function programa(estadoGlobal, pistas){
-  
-  establecerTempo(estadoGlobal.tempo);
- 
- let arm = a.armoniaEnNotasExplicitas(estadoGlobal.armonia)
-  
-  if (pistas.length !== 0) { 
-    pistas.forEach(function (pista){
-
-      playSequence (estadoGlobal.armonia, pista.name, pista.volumen, pista.paneo, pista.sonido, '1m', pista.notas, pista.parte, pista.octavaAbsoluta);
-  });
- } else {
-  stopSequence()
- };
 }
+  
+
+
+

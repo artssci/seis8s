@@ -23,6 +23,8 @@
 
     <script type="module" src="armonia.js"></script>
     <script type="module" src="instrumento.js"></script>    
+    <script type="module" src="ritmo.js"></script>
+    <script type="module" src="programa.js"></script>
     <script type="module" src="parser.mjs"></script>
     
 
@@ -40,7 +42,7 @@
 <g id="panelesYconsola">
   
 <!-- Panel Izquierdo   -->
-<g id="panelIzquierdo">
+<g id="panelIzquierdo" v-show="ocultarPanelIzquierdo">
   
 <!--Barra horizontal Panel Izquierdo    -->
 <g id="barraHorizontalPanelIzquierdo">
@@ -50,8 +52,7 @@
 <text id="saludos" v-show="mostrarTituloPanelIzquierdo" fill="#FAFF00" xml:space="preserve" style="white-space: pre" font-family="Permanent Marker" font-size="32" letter-spacing="0em"><tspan x="110.643" y="181.291">{{tituloPanelIzquierdo}}</tspan></text>
 </g>
 </g>
-</g>
-  
+<!-- </g>   -->
   
 <!-- menu panel izquierdo   -->
 <g id="menuPanelIzquierdo">
@@ -86,10 +87,8 @@
    <span class="material-symbols-outlined iconos" style="font-size: 3em" font-family="Permanent Marker">piano</span>
  </foreignObject>
 </g>
-  
-  
 
-</g>
+  
 <g id="abrirMenuIzquierdo" @click="abrirMenuIzquierdo()" fill="transparent">
 <rect x="0.5" y="136.5" width="63" height="63" rx="4.5" stroke="black"/>
 <text id="- - -" transform="translate(5.10095 140.145)" fill="#FAFF00" xml:space="preserve" style="white-space: pre" font-family="Permanent Marker" font-size="40" letter-spacing="0em"><tspan x="14.7115" y="33.6944">-&#10;</tspan><tspan x="14.7115" y="43.6944">-&#10;</tspan><tspan x="14.7115" y="53.6944">-</tspan></text>
@@ -200,6 +199,9 @@
 
 </g>
   </g>
+  </g>
+  
+  
   
   
 <!-- panel derecho   -->
@@ -209,14 +211,19 @@
   <foreignobject  v-bind:x="consoleXpos" y="516.5" width="1023.96" height="151" rx="4.5">
   <p id="errorConsole" v-text="errorConsole"></p>
   </foreignobject>
+  
+  <foreignObject @click="expandirPantalla()" v-bind:x="consoleXpos + 1023.96 - 60"  y="calc(536.918 + 130.582 - 60)"  width="50" height="50"> 
+  <span class="material-symbols-outlined iconos" style="font-size: 3em"> settings_overscan </span>
+  </foreignObject>
 </g>
+
   
   
   <g id="barraHorizontalPanelDerecho">
 <rect id="barraHorizontalNuevoDocumento" x="343.5" y="135.379" width="1023.94" height="64.0886" rx="4.5" stroke="black"/>
 
     <g id="menuNuevoDoc">
-<g id="plusSign" @click="agregaUnDocADocs()">
+<g id="plusSign" @click="agregaUnDocADocs()" v-show="showPlusSign">
 <rect v-bind:x="initXPlusSsign" y="135.344" width="62.5962" height="64.0886" rx="4.5" stroke="black"/>
  <foreignObject  v-bind:x="initXPlusSsign" y="135.344" width="62.5962" height="64.0886" rx="4.5">
   <p> + </p>  
@@ -248,19 +255,21 @@
 
 
    
-<g id="codeArea">
+<g id="codeArea"  v-show="doc.documentoActivo">
 
 <rect id="panelDerecho_2" v-bind:x="codeEditorImagenDeFondoXpos" y="200.828" width="1020.61" height="337.76" fill="url(#pattern0_1_2)" stroke="black" stroke-width="4.34896"/>
 <rect class="editorOverlay" v-bind:x="codeEditorXpos" y="199.5" width="1024" height="336" rx="4.5" stroke="black" />
   
-  <foreignobject class="editorDeTexto"  v-show="doc.documentoActivo" v-bind:x="codeEditorXpos" y="199.5" width="1024" height="336" rx="4.5" >     
-     <textarea :name="doc.textareaId" 
-               :ref="('editorTextArea' + index)" 
-               :style="{ fontSize: textSize}"
-               v-model="doc.textEditor" 
-               @input="convertInput"
-               @keydown.shift.enter.prevent="evaluate"
-               @keydown.ctrl="stopShortCut($event); incrementarTamanoDeTextoShortCut($event); reducirTamanoDeTextoShortCut()" 
+  <foreignobject class="editorDeTexto" v-bind:x="codeEditorXpos" y="199.5" width="1024" height="336" rx="4.5" >     
+    
+    
+     <textarea      :name="doc.name" 
+                    :id="doc.textareaId" 
+                    :style="{ fontSize: textSize }"
+                    v-model="doc.textEditor" 
+                    @input="convertInput"
+                    @keydown.shift.enter.prevent="evaluate"
+                    @keydown.ctrl="stopShortCut($event); incrementarTamanoDeTextoShortCut($event); reducirTamanoDeTextoShortCut()" 
                ></textarea>
       </foreignobject>
     
