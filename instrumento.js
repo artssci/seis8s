@@ -76,6 +76,18 @@ export function stopSequence() {
     canalDelBajo[id].dispose();
     delete canalDelBajo[id];  // Remove reference
   });
+    
+     // Dispose of all samplers
+  Object.keys(congaSampler).forEach(id => {
+    congaSampler[id].dispose();
+    delete congaSampler[id];  // Remove reference
+  });
+
+  // Dispose of all channels
+  Object.keys(canalDeLaConga).forEach(id => {
+    canalDeLaConga[id].dispose();
+    delete canalDeLaConga[id];  // Remove reference
+  });
 
  // Dispose of all sequences
   Object.keys(sequences).forEach(id => {
@@ -149,6 +161,20 @@ export function desconectarPistasBorradas(id) {
       canalDelBajo[id].disconnect();
       canalDelBajo[id].dispose();
       delete canalDelBajo[id];
+    }
+  
+  
+  if (congaSampler[id]) {
+      congaSampler[id].releaseAll();
+      congaSampler[id].disconnect();
+      congaSampler[id].dispose();
+      delete congaSampler[id];
+    }
+
+    if (canalDeLaConga[id]) {
+      canalDeLaConga[id].disconnect();
+      canalDeLaConga[id].dispose();
+      delete canalDeLaConga[id];
     }
 }
 
