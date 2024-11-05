@@ -648,14 +648,18 @@ replaceCommand(command) {
     this.pantallaCompleta = !this.pantallaCompleta;
     if (this.pantallaCompleta == false){
     this.ocultarPanelIzquierdo = false
+      this.codeEditorImagenDeFondoXpos = 345.28,
+      this.codeEditorXpo = 343.5,
+      this.consoleXpos = 343.606
     } else {
       console.log("completa")
       this.ocultarPanelIzquierdo = true;
-      // this.codeEditorImagenDeFondoXpos: 345.28,
-      // this.codeEditorXpos: 343.5,
-      this.consoleXpos = -0.432373 
+      this.codeEditorImagenDeFondoXpos = -0.432373,
+      this.codeEditorXpo =  -0.432373,
+      this.consoleXpos = -0.432373
       // x="-0.432373" y="199.5" 
         // width="342.932" height="469"
+
     }
   },
 //     
