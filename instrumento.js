@@ -630,7 +630,7 @@ export function tocaSecuencia(armonia, instrumento, id, volumen, paneo, indiceSo
      console.log("¡Comenzando ritmo del conga!")
 
     
-    let parteDeLaConga =  r.filtrarYaplanarParte(parte)
+    let parteDeLaConga =  r.filtrarYaplanarParteCongas(parte)
      
       Tone.loaded().then(() => {
        sequences[id] = new Tone.Part((time, value) => {

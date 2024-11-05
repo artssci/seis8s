@@ -7,3 +7,11 @@ export function filtrarYaplanarParte(parteNonFlattened) {
       filteredParte.forEach(e => e.note = 'C4');
       return filteredParte;
     }
+
+
+export function filtrarYaplanarParteCongas(parteNonFlattened) {
+      let parteFlattened = parteNonFlattened.flat();
+      let filteredParte = parteFlattened.filter(e => e.note !== null);
+      // filteredParte.forEach(e => e.note = 'C4');
+      return filteredParte;
+    }
