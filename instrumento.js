@@ -159,6 +159,43 @@ export function desconectarPistasBorradas(id) {
 // let seq1, seq2, seq3, seq4, seq5, canalDelTeclado2;
 let sequences = {};  // Object to store sequences dynamically by id
 
+///////////// Sampler de la conga ///////////// 
+
+
+let congaSampler = {};  // Initialize bomboSampler as an object to store multiple samplers
+let canalDeLaConga = {}; // Initialize canalDelBombo as an object to store multiple channels
+
+function congaSamplerF(sonidoBombo, id, volumen, paneo) {
+  
+  let newBaseUrl = "https://luisnavarrodelangel.github.io/sonidos-seis8s/" + sonidoBombo;
+
+  // Initialize the sampler if it's not already created  
+  if (!congaSampler[id] || congaSampler[id].baseUrl !== newBaseUrl) {
+    congaSampler[id] = new Tone.Sampler({
+      urls: { C4: "C2.wav" },
+      release: 1,
+      baseUrl: newBaseUrl
+    });
+  }
+
+  // Initialize the channel if not created yet
+  if (!canalDeLaConga[id]) {
+    canalDeLaConga[id] = new Tone.Channel({
+      volume: normalizarVolumen(volumen), // Initial volume
+      pan: (paneo * 2) - 1,  // Initial pan
+    }).toDestination();
+  } else {
+    // If the channel already exists, update its parameters
+    canalDeLaConga[id].volume.value = normalizarVolumen(volumen);
+    canalDeLaConga[id].pan.value = (paneo * 2) - 1;
+  }
+
+  // Connect the sampler to its corresponding channel
+  congaSampler[id].connect(canalDeLaConga[id]);  // Connect the sampler to the channel
+}
+
+
+
 ///////////// Sampler del bombo ///////////// 
 
 
@@ -533,6 +570,52 @@ export function tocaSecuencia(armonia, instrumento, id, volumen, paneo, indiceSo
      });
    }
   }
+  
+  
+  ///////////////conga///////////////
+  
+  
+  if (instrumento === "conga")  {
+    
+    let sonidoCongas = s.sonidos.conga[indiceSonido].nombre;
+    congaSamplerF(sonidoCongas, id, volumen, paneo);     
+  
+    if (parte.length == 0 ) {  
+        console.log("¡Comenzando secuencia del conga!");
+
+        // Create and start the sequence
+        
+      Tone.loaded().then(() => {
+      console.log("Sampler fully loaded!");
+        sequences[id] = new Tone.Sequence((time, note) => {
+          congaSampler[id].triggerAttackRelease(note, 0.1, time);
+        }, notas, '1m');   // '1m' represents one measure as the interval
+
+        sequences[id].start(0);
+
+      });
+
+  } else if (parte.length > 0) {
+     console.log("¡Comenzando ritmo del conga!")
+
+    
+    let parteDeLaConga =  r.filtrarYaplanarParte(parte)
+     
+      Tone.loaded().then(() => {
+       sequences[id] = new Tone.Part((time, value) => {
+        congaSampler[id].triggerAttackRelease(value.note, value.duration, time);
+    }, parteDeLaConga).start(0);
+        
+      console.log('Sequence created for conga' + id.toString(), id, sequences[id]);
+
+      sequences[id].loop = true; // Enable looping
+  
+       let numeroDeCompases = a.numberOfMeasures(parteDeLaConga);
+       sequences[id].loopEnd = numeroDeCompases + 1 + "m"
+     });
+   }
+  }
+  
 }
   
 

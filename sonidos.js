@@ -2,6 +2,7 @@
 // lista de sonidos //
 export const sonidos = {
   bajo: [
+//     7
     { nombre: "bajoSintetico/" },
     { nombre: "bajoAcustico/" },
     { nombre: "bajoAspero/" },
@@ -11,6 +12,7 @@ export const sonidos = {
     { nombre: "bajoSlap/" }
   ],
   teclado: [
+//     9
     { nombre: "stereoGrPiano/" },
     { nombre: "stereoPiano/" },
     { nombre: "laPiano/" },
@@ -28,6 +30,12 @@ export const sonidos = {
   contratiempo: [
     { nombre: "contrasRoomSet/" },
     { nombre: "contrasStandardSet4/" }
+  ], 
+   conga: [
+    { nombre: "congas-set-uno/" },
+    { nombre: "congas-set-dos/" },
+    { nombre: "congas-set-tres/" },
+    { nombre: "congas-set-cuatro/" }
   ]
 };
 
