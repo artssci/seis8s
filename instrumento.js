@@ -165,9 +165,9 @@ let sequences = {};  // Object to store sequences dynamically by id
 let congaSampler = {};  // Initialize bomboSampler as an object to store multiple samplers
 let canalDeLaConga = {}; // Initialize canalDelBombo as an object to store multiple channels
 
-function congaSamplerF(sonidoBombo, id, volumen, paneo) {
+function congaSamplerF(sonidoConga, id, volumen, paneo) {
   
-  let newBaseUrl = "https://luisnavarrodelangel.github.io/sonidos-seis8s/" + sonidoBombo;
+  let newBaseUrl = "https://luisnavarrodelangel.github.io/sonidos-seis8s/" + sonidoConga;
 
   // Initialize the sampler if it's not already created  
   if (!congaSampler[id] || congaSampler[id].baseUrl !== newBaseUrl) {
@@ -582,8 +582,8 @@ export function tocaSecuencia(armonia, instrumento, id, volumen, paneo, indiceSo
   
   if (instrumento === "conga")  {
     
-    let sonidoCongas = s.sonidos.conga[indiceSonido].nombre;
-    congaSamplerF(sonidoCongas, id, volumen, paneo);     
+    let sonidoConga = s.sonidos.conga[indiceSonido].nombre;
+    congaSamplerF(sonidoConga, id, volumen, paneo);     
   
     if (parte.length == 0 ) {  
         console.log("¡Comenzando secuencia del conga!");

@@ -32,10 +32,10 @@ export const sonidos = {
     { nombre: "contrasStandardSet4/" }
   ], 
    conga: [
-    { nombre: "congas-set-uno/" },
-    { nombre: "congas-set-dos/" },
-    { nombre: "congas-set-tres/" },
-    { nombre: "congas-set-cuatro/" }
+    { nombre: "conga-set-uno/" },
+    { nombre: "conga-set-dos/" },
+    { nombre: "conga-set-tres/" },
+    { nombre: "conga-set-cuatro/" }
   ]
 };
 
