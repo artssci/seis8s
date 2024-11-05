@@ -172,7 +172,12 @@ function congaSamplerF(sonidoBombo, id, volumen, paneo) {
   // Initialize the sampler if it's not already created  
   if (!congaSampler[id] || congaSampler[id].baseUrl !== newBaseUrl) {
     congaSampler[id] = new Tone.Sampler({
-      urls: { C4: "C2.wav" },
+      urls: { 
+        C4: "conga_abierta.wav",
+        D4: "conga_muteado.wav",
+        E4: "conga_tapado.wav",
+        
+      },
       release: 1,
       baseUrl: newBaseUrl
     });
