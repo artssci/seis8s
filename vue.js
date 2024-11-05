@@ -644,30 +644,30 @@ replaceCommand(command) {
     },
     
   expandirPantalla(){
-    this.pantallaCompleta = !this.pantallaCompleta;
-    if (this.pantallaCompleta == false){
-    console.log("normal")
-    this.panelIzquierdoEstaVisible = true
-      this.codeEditorImagenDeFondoXpos = 345.28
-      this.codeEditorXpos = 343.5
-      this.consoleXpos = 343.606
-      // this.initXdocTab = 63.332373
-      this.initXCerrarDocIcono = 549.42                  
-      this.initXPlusSsign = 575.524
+//     this.pantallaCompleta = !this.pantallaCompleta;
+//     if (this.pantallaCompleta == false){
+//     console.log("normal")
+//     this.panelIzquierdoEstaVisible = true
+//       this.codeEditorImagenDeFondoXpos = 345.28
+//       this.codeEditorXpos = 343.5
+//       this.consoleXpos = 343.606
+//       // this.initXdocTab = 63.332373
+//       this.initXCerrarDocIcono = 549.42                  
+//       this.initXPlusSsign = 575.524
 
-    } else {
-      console.log("completa")
-      this.panelIzquierdoEstaVisible = false
-      this.codeEditorImagenDeFondoXpos = -0.432373
-      this.codeEditorXpos =  -0.432373
-      this.consoleXpos = -0.432373
-      this.initXdocTab = 63.332373
-      this.initXCerrarDocIcono= 205.816
-      this.initXPlusSsign = 231.918
-      // x="-0.432373" y="199.5" 
-        // width="342.932" height="469"
+//     } else {
+//       console.log("completa")
+//       this.panelIzquierdoEstaVisible = false
+//       this.codeEditorImagenDeFondoXpos = -0.432373
+//       this.codeEditorXpos =  -0.432373
+//       this.consoleXpos = -0.432373
+//       this.initXdocTab = 63.332373
+//       this.initXCerrarDocIcono= 205.816
+//       this.initXPlusSsign = 231.918
+//       // x="-0.432373" y="199.5" 
+//         // width="342.932" height="469"
 
-    }
+//     }
   },
 //     
   }
